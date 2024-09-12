@@ -1,0 +1,17 @@
+<!-- home.ejs -->
+<div class="row">
+  <div class="col-md-12">
+    <% if (user) { %>
+      <div class="alert alert-success" role="alert">
+        Hello, <%= user.name %>! Welcome back.
+      </div>
+      <a href="/users/logout" class="btn btn-danger">Logout</a>
+    <% } else { %>
+      <div class="alert alert-info" role="alert">
+        You are not logged in.
+      </div>
+      <a href="/users/login" class="btn btn-primary">Login</a>
+      <a href="/users/register" class="btn btn-secondary">Register</a>
+    <% } %>
+  </div>
+</div>

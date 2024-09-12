@@ -1,0 +1,30 @@
+{
+	"name": "ra-utility-website",
+	"version": "1.0.0",
+	"description": "",
+	"main": "home.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node src/app.js",
+		"dev": "nodemon src/app.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"bcryptjs": "^2.4.3",
+		"connect-flash": "^0.1.1",
+		"dotenv": "^16.4.5",
+		"ejs": "^3.1.10",
+		"express": "^4.21.0",
+		"express-ejs-layouts": "^2.5.1",
+		"express-session": "^1.18.0",
+		"mongodb": "^6.8.1",
+		"mongoose": "^8.6.2",
+		"passport": "^0.7.0",
+		"passport-local": "^1.0.0"
+	},
+	"devDependencies": {
+		"prettier": "3.3.3"
+	}
+}
