@@ -5,7 +5,14 @@ const passport = require('passport');
 const session = require('express-session');
 const flash = require('connect-flash');
 const path = require('path');
+const { ensureAuthenticated, ensureAdmin } = require('./middleware/auth');
 require('dotenv').config();
+
+// Import Routes
+const authRoutes = require('./routes/authRoutes');
+const todoRoutes = require('./routes/todo');
+const homeRoutes = require('./routes/home');
+const adminRoutes = require('./routes/admin');
 
 // Initialize express app
 const app = express();
@@ -21,13 +28,6 @@ mongoose
 	.connect(db)
 	.then(() => console.log('MongoDB Connected'))
 	.catch((err) => console.log('MongoDB Connection Error:', err));
-
-// Set EJS as view engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '../views')); // Adjust this path based on your structure
-
-app.use(expressLayouts);
-app.set('layout', 'layout');
 
 // Bodyparser Middleware
 app.use(express.urlencoded({ extended: false }));
@@ -57,22 +57,20 @@ app.use((req, res, next) => {
 	next();
 });
 
-app.use((req, res, next) => {
-	const publicRoutes = ['/', '/users/login', '/users/register'];
-	if (publicRoutes.includes(req.path) || req.isAuthenticated()) {
-		return next();
-	}
-	req.flash('error_msg', 'Please log in to view that resource');
-	res.redirect('/users/login');
-});
+// Set EJS as view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../views')); // Adjust this path based on your structure
+app.use(expressLayouts);
+app.set('layout', 'layout');
 
-// Static files
+// Static Files Middleware
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
-app.use('/users', require('./routes/authRoutes'));
-app.use('/todos', require('./routes/todo'));
-app.use('/', require('./routes/home'));
+app.use('/', homeRoutes);       // Home page route
+app.use('/users', authRoutes);  // User authentication routes
+app.use('/todos', ensureAuthenticated, todoRoutes); // To-do list routes (protected)
+app.use('/admin', ensureAuthenticated, ensureAdmin, adminRoutes); // Admin routes (protected)
 
 // Start server
 const PORT = process.env.PORT || 3000;

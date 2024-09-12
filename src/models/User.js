@@ -14,6 +14,11 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  // Used to control user permissions.
+  isAdmin: {
+    type: Boolean,
+    default: false
   }
 });
 
