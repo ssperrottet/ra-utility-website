@@ -74,4 +74,4 @@ app.use('/admin', ensureAuthenticated, ensureAdmin, adminRoutes); // Admin route
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}\nConnect to web app through http://localhost:${PORT}`));
