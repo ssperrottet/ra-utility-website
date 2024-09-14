@@ -1,0 +1,24 @@
+<header>
+    <h1><%= title %></h1>
+    <nav>
+        <a href="/">Home</a> | 
+        <a href="/calendars/create">Create New Calendar</a>
+    </nav>
+</header>
+
+<main>
+    <h2>My Calendars</h2>
+    
+    <% if (calendars && calendars.length > 0) { %>
+        <ul>
+            <% calendars.forEach(calendar => { %>
+                <li>
+                    <a href="/calendars/<%= calendar._id %>"><%= calendar.name %></a>
+                    <!-- You can add more details or actions here -->
+                </li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p>No calendars found.</p>
+    <% } %>
+</main>

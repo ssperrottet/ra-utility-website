@@ -1,0 +1,156 @@
+<form action="/calendars/create" method="POST">
+    <label for="name">Calendar Name:</label>
+    <input type="text" name="name" required />
+
+    <label for="description">Description:</label>
+    <input type="text" name="description" required />
+
+    <label for="users">Add Users:</label>
+    <div id="userInputContainer">
+        <input type="text" id="userSearch" placeholder="Type user names..." autocomplete="off" />
+        <ul id="userSuggestions" class="suggestions-list"></ul>
+    </div>
+
+    <!-- Container for selected users (tags) -->
+    <div id="selectedUsers" class="selected-users"></div>
+
+    <input type="hidden" name="users" id="selectedUserIds" required />
+
+    <button type="submit">Create Calendar</button>
+</form>
+
+<script>
+// Example of the current user's ID and name (passed from the server/session)
+const currentUserId = '<%= user._id %>';  // Server-side render or session-based value
+const currentUserName = '<%= user.name %>';  // Same as above
+let selectedUsers = [];
+
+// Handle user search and tag selection
+const userSearchInput = document.getElementById('userSearch');
+const userSuggestions = document.getElementById('userSuggestions');
+const selectedUsersContainer = document.getElementById('selectedUsers');
+const selectedUserIdsInput = document.getElementById('selectedUserIds');
+
+// Add current user to the selected users automatically
+selectedUsers.push({ id: currentUserId, name: currentUserName });
+updateSelectedUsersUI();
+
+// Handle user search input
+userSearchInput.addEventListener('input', function () {
+    const query = this.value;
+
+    if (query.length < 2) {
+        userSuggestions.innerHTML = '';
+        return;
+    }
+
+    fetch(`/users/search?q=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            // Exclude users already selected from the suggestions
+            const suggestions = data
+                .filter(user => !selectedUsers.some(selected => selected.id === user._id))
+                .map(user => {
+                    return `<li data-id="${user._id}" class="suggestion-item">${user.name}</li>`;
+                })
+                .join('');
+            userSuggestions.innerHTML = suggestions;
+        })
+        .catch(err => {
+            console.error('Error fetching users:', err);
+        });
+});
+
+// Add user tag when clicking a suggestion
+userSuggestions.addEventListener('click', function (event) {
+    if (event.target.classList.contains('suggestion-item')) {
+        const userId = event.target.getAttribute('data-id');
+        const userName = event.target.innerText;
+
+        // Check if user is already selected
+        if (!selectedUsers.some(user => user.id === userId)) {
+            // Add selected user to array
+            selectedUsers.push({ id: userId, name: userName });
+            updateSelectedUsersUI();
+        }
+
+        // Clear input and suggestions
+        userSearchInput.value = '';
+        userSuggestions.innerHTML = '';
+    }
+});
+
+// Update selected user tags and hidden input field
+function updateSelectedUsersUI() {
+    selectedUsersContainer.innerHTML = selectedUsers.map(user => {
+        return `<div class="user-tag" data-id="${user.id}">${user.name}<span class="remove-user">&times;</span></div>`;
+    }).join('');
+
+    // Update hidden input with user IDs
+    selectedUserIdsInput.value = selectedUsers.map(user => user.id).join(',');
+
+    // Attach event listeners to remove buttons
+    document.querySelectorAll('.remove-user').forEach(button => {
+        button.addEventListener('click', removeUser);
+    });
+}
+
+// Remove user from the selected list
+function removeUser(event) {
+    const userId = event.target.parentElement.getAttribute('data-id');
+    selectedUsers = selectedUsers.filter(user => user.id !== userId);
+    updateSelectedUsersUI();
+}
+</script>
+
+<style>
+/* Style for suggestions dropdown */
+.suggestions-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    position: absolute;
+    background-color: #fff;
+    width: 100%;
+    z-index: 1000;
+}
+
+.suggestion-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.suggestion-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* Style for selected users (tags) */
+.selected-users {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.user-tag {
+    background-color: #007bff;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.user-tag .remove-user {
+    margin-left: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.user-tag .remove-user:hover {
+    color: red;
+}
+</style>

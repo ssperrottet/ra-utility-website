@@ -1,0 +1,24 @@
+<h1>Calendar: <%= calendar.name %></h1>
+  <p>Description: <%= calendar.description %></p>
+
+  <h2>Users:</h2>
+  <ul>
+    <% calendar.users.forEach(user => { %>
+      <li><%= user.user_id.name %> (<%= user.user_id.email %>)</li>
+    <% }); %>
+  </ul>
+
+  <h2>Days:</h2>
+  <ul>
+    <% calendar.days.forEach(day => { %>
+      <li>
+        <strong>Date: <%= day.date %></strong>
+        <p>Assigned Users:</p>
+        <ul>
+          <% day.assigned_users.forEach(assigned => { %>
+            <li><%= assigned.user_id.name %> (<%= assigned.user_id.email %>)</li>
+          <% }); %>
+        </ul>
+      </li>
+    <% }); %>
+  </ul>
