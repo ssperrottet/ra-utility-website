@@ -12,22 +12,11 @@ const getCalendarById = async (req, res) => {
 			return res.status(404).render('error', { message: 'Calendar not found' });
 		}
 
-		// Ensure the user requesting has access to the calendar
-		const isUserInCalendar = calendar.users.some((user) =>
-			user.user_id.equals(req.user._id)
-		);
-		if (!isUserInCalendar) {
-			return res
-				.status(403)
-				.render('error', {
-					message: 'You do not have access to this calendar',
-				});
-		}
-
 		// Render the calendar view and pass the calendar data
-		res
-			.status(200)
-			.render('calendars/calendar', { calendar, title: calendar.name });
+		res.status(200).render('calendars/calendar', {
+			calendar: calendar,
+			title: calendar.name,
+		});
 	} catch (err) {
 		console.error(err);
 		// On server error, render an error page
@@ -72,42 +61,59 @@ const createCalendar = async (req, res) => {
 	}
 };
 
-// Update a specific calendar by ID
 const updateCalendar = async (req, res) => {
 	try {
-		const { calendarId } = req.params;
-		const { name, description, days, users } = req.body;
+		console.log('Attempting to save days');
 
+		const { calendarId, days, name, description } = req.body;
+
+		// Validate input
+		if (!calendarId || !days || !Array.isArray(days)) {
+			return res.status(400).json({ message: 'Invalid input' });
+		}
+
+		// Find the calendar
 		const calendar = await Calendar.findById(calendarId);
-
 		if (!calendar) {
+			console.log('cal not found');
 			return res.status(404).json({ message: 'Calendar not found' });
 		}
 
-		// Ensure the requesting user is part of the calendar
-		const isUserInCalendar = calendar.users.some((user) =>
-			user.user_id.equals(req.user._id)
-		);
-		if (!isUserInCalendar) {
-			return res
-				.status(403)
-				.json({
-					message: 'You do not have permission to modify this calendar',
-				});
-		}
-
-		// Update calendar details
+		// Update optional name and description fields
 		if (name) calendar.name = name;
 		if (description) calendar.description = description;
-		if (days) calendar.days = days;
-		if (users) calendar.users = users.map((userId) => ({ user_id: userId }));
+
+		// Ensure calendar.days exists as an array
+		if (!calendar.days) calendar.days = [];
+		console.log(days);
+		// Process days and assigned users
+		days.forEach((day) => {
+			console.log(day);
+			const existingDay = calendar.days.find(
+				(d) => d.date.toISOString() === new Date(day.date).toISOString()
+			);
+
+			if (existingDay) {
+				// Update existing day
+				existingDay.assigned_users = day.assigned_users.map((user) => ({
+					id: user.user_id,
+				}));
+			} else {
+				// Add new day
+				calendar.days.push({
+					date: new Date(day.date),
+					assigned_users: day.assigned_users.map((user) => ({ user_id: user.user_id })),
+				});
+			}
+		});
 
 		await calendar.save();
 
-		res.status(200).json(calendar);
+		return res.status(200).json(calendar);
+		
 	} catch (err) {
-		console.error(err);
-		res.status(500).json({ message: 'Server error' });
+		console.error('Error updating calendar:', err);
+		return res.status(500).json({ message: 'Server error' });
 	}
 };
 

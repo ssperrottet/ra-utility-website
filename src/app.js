@@ -5,6 +5,7 @@ const passport = require('passport');
 const session = require('express-session');
 const flash = require('connect-flash');
 const path = require('path');
+
 const { ensureAuthenticated, ensureAdmin } = require('./middleware/auth');
 require('dotenv').config();
 
@@ -24,14 +25,14 @@ require('./config/passportConfig')(passport);
 
 // MongoDB Config
 const db = process.env.MONGO_URI;
-
+console.log(db);
 // Connect to MongoDB
 mongoose
   .connect(db)
   .then(() => console.log('MongoDB Connected'))
   .catch((err) => console.log('MongoDB Connection Error:', err));
 
-// Bodyparser Middleware
+// Body parser Middleware
 app.use(express.urlencoded({ extended: false }));
 
 // Express Session Middleware
@@ -42,10 +43,10 @@ app.use(
     saveUninitialized: true,
   })
 );
-
+app.use(express.json());
 // Passport Middleware
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.session(undefined));
 
 // Connect flash for flash messages
 app.use(flash());

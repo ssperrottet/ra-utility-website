@@ -1,24 +1,58 @@
-<h1>Calendar: <%= calendar.name %></h1>
-  <p>Description: <%= calendar.description %></p>
+<div class="container">
+    <div id="calendar"></div>
+    <div id="members-table">
+        <h2>Members</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% calendar.users.forEach(user => { %>
+                    <tr>
+                        <td><%= user.user_id.name %></td>
+                        <td><%= user.user_id.email %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+    <!-- Add Edit Calendar Button -->
+    <div id="edit-button-container">
+        <button id="edit-calendar-button">Edit Calendar</button>
+    </div>
+</div>
 
-  <h2>Users:</h2>
-  <ul>
-    <% calendar.users.forEach(user => { %>
-      <li><%= user.user_id.name %> (<%= user.user_id.email %>)</li>
-    <% }); %>
-  </ul>
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const calendarEl = document.getElementById('calendar');
 
-  <h2>Days:</h2>
-  <ul>
-    <% calendar.days.forEach(day => { %>
-      <li>
-        <strong>Date: <%= day.date %></strong>
-        <p>Assigned Users:</p>
-        <ul>
-          <% day.assigned_users.forEach(assigned => { %>
-            <li><%= assigned.user_id.name %> (<%= assigned.user_id.email %>)</li>
-          <% }); %>
-        </ul>
-      </li>
-    <% }); %>
-  </ul>
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          events: <%- JSON.stringify(calendar.days.map(day => ({
+              title: day.assigned_users.map(user => user.id.name).join(', '),
+              start: day.date
+              //description: `Assigned Users: ${day.assigned_users.map(user => user.id.name).join(', ')}`
+          }))) %>,
+          eventClick: function(info) {
+              alert(info.event.extendedProps.description);
+          },
+          headerToolbar: {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          }
+      });
+
+      calendar.render();
+
+      // Handle Edit Calendar Button Click
+      document.getElementById('edit-calendar-button').addEventListener('click', function() {
+          window.location.href = `/calendars/edit/<%= calendar._id %>`; // Redirect to the edit page
+      });
+  });
+</script>
